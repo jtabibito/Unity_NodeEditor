@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEditor;
 using NodeEditor.Component;
 using NodeEditor.Tools;
@@ -9,11 +10,17 @@ namespace NodeEditor.Window
         private NodeComponent _m_pNode;
         private ScriptField[] _m_arrFields;
 
-        public static void OpenNodeInspector(object pObject)
+        public static NodeInspectorWindow OpenNodeInspector(object pObject)
         {
             NodeInspectorWindow pWindow = GetWindow<NodeInspectorWindow>();
-            pWindow._m_pNode = (NodeComponent)pObject;
+            pWindow._m_pNode = pObject as NodeComponent;
             pWindow.Show();
+            return pWindow;
+        }
+
+        public void RefreshData(object pObject)
+        {
+            _m_pNode = pObject as NodeComponent;
         }
 
         public void OnGUI()

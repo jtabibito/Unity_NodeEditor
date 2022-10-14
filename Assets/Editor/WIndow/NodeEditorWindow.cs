@@ -25,6 +25,8 @@ namespace NodeEditor.Window
 
         private List<NodeComponent> _m_listNodes;
 
+        private NodeInspectorWindow _m_pInspectorWindow;
+
         public NodeEditorWindow()
         {
             _m_pInputEvent = new InputEvent();
@@ -40,6 +42,13 @@ namespace NodeEditor.Window
             _m_pGridStyle2.m_pColor = Color.gray;
 
             _m_listNodes = new List<NodeComponent>(8);
+        }
+        public void OnDestroy()
+        {
+            if (_m_pInspectorWindow != null)
+            {
+                _m_pInspectorWindow.Close();
+            }
         }
 
         public void OnGUI()
@@ -274,9 +283,12 @@ namespace NodeEditor.Window
 
                 }
             }
-            else
+            else if (pEvent.NodeCount == 1)
             {
-
+                if (_m_pInspectorWindow != null)
+                {
+                    _m_pInspectorWindow.RefreshData(pEvent.GetNode(0));
+                }
             }
 
             GUI.changed = true;
@@ -318,7 +330,7 @@ namespace NodeEditor.Window
         public void MenuMouseRight_Inspector(object args)
         {
             var pEvent = (InputEvent)args;
-            NodeInspectorWindow.OpenNodeInspector(pEvent.GetNode(0));
+            _m_pInspectorWindow = NodeInspectorWindow.OpenNodeInspector(pEvent.GetNode(0));
         }
 
         public void GUI_ContextMenu_EmptyPlace(InputEvent pEvent)
