@@ -210,6 +210,7 @@ namespace NodeEditor.Window
             }
             else if (pEvent.NodeCount == 0)
             {
+                pEvent.m_pState.ClearState(InputState.OP_CONNECT_NODE | InputState.OP_DISCONNECT_NODE);
                 GUI_ContextMenu_EmptyPlace(pEvent);
             }
             else
