@@ -372,7 +372,6 @@ namespace NodeEditor.Data
                         sb.AppendLine(DataAssetLabel.mc_LabelDataType + DataAssetLabel.mc_ErrorDataType);
                         sb.AppendLine(DataAssetLabel.mc_LabelID + "-1");
                         sb.AppendLine(DataAssetLabel.mc_LabelDataStart);
-                        sb.AppendLine("");
                         sb.AppendLine(DataAssetLabel.mc_LabelDataEnd);
                     }
                     sb.AppendLine(DataAssetLabel.mc_LabelEnd);
