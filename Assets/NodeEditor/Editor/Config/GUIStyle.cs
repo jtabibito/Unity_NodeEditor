@@ -39,5 +39,7 @@ namespace NodeEditor.Config
             fontSize = 16,
             fontStyle = FontStyle.Bold
         };
+
+        public static float ms_fBezierLineWidth = 6f;
     }
 }
