@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEditor;
 using NodeEditor.Input;
@@ -29,6 +31,7 @@ namespace NodeEditor.Window
         protected GridStyle _m_pGridStyle1;
         protected GridStyle _m_pGridStyle2;
         protected Vector2 _m_v2GridOffset;
+        protected float _m_fZoom = 1;
 
         private List<NodeComponent> _m_listNodes;
 
@@ -56,6 +59,7 @@ namespace NodeEditor.Window
         }
         public void OnEnable()
         {
+            ResetZoom();
             _m_pTextFieldStyle = new GUIStyle() {
                 alignment = TextAnchor.MiddleCenter,
                 fontSize = 14,
@@ -218,6 +222,16 @@ namespace NodeEditor.Window
                     if (_m_pInputEvent.current.button == 0)
                     {
                         Event_MouseLeftUp(_m_pInputEvent);
+                    }
+                    break;
+                case EventType.ScrollWheel:
+                    if (_m_pInputEvent.current.delta.y < 0)
+                    {
+                        Event_MouseScrollUp(_m_pInputEvent);
+                    }
+                    else if (_m_pInputEvent.current.delta.y > 0)
+                    {
+                        Event_MouseScrollDown(_m_pInputEvent);
                     }
                     break;
                 default:
@@ -399,6 +413,71 @@ namespace NodeEditor.Window
             pEvent.current.Use();
         }
     
+        private void Event_MouseScrollUp(InputEvent pEvent)
+        {
+            float fZoom = -0.2f*pEvent.current.delta.y;
+            _m_fZoom += fZoom;
+            if (_m_fZoom > 0.1f && _m_fZoom < 2.0f)
+            {
+                _m_pGridStyle1.m_fSpace *= 1/fZoom;
+                _m_pGridStyle2.m_fSpace *= 1/fZoom;
+                foreach (NodeComponent pNode in _m_listNodes)
+                {
+                    pNode.ZoomIn(fZoom);
+                }
+            }
+            else
+            {
+                _m_fZoom -= fZoom;
+            }
+
+            GUI.changed = true;
+            pEvent.current.Use();
+        }
+        private void Event_MouseScrollDown(InputEvent pEvent)
+        {
+            float fZoom = 0.2f*pEvent.current.delta.y;
+            _m_fZoom -= fZoom;
+            if (_m_fZoom > 0.1f && _m_fZoom < 2.0f)
+            {
+                _m_pGridStyle1.m_fSpace *= fZoom;
+                _m_pGridStyle2.m_fSpace *= fZoom;
+                foreach (NodeComponent pNode in _m_listNodes)
+                {
+                    pNode.ZoomOut(fZoom);
+                }
+            }
+            else
+            {
+                _m_fZoom += fZoom;
+            }
+
+            GUI.changed = true;
+            pEvent.current.Use();
+        }
+        private void ResetZoom()
+        {
+            float fZoom = _m_fZoom-1;
+            if (fZoom > 0)
+            {
+                _m_pGridStyle1.m_fSpace *= fZoom;
+                _m_pGridStyle2.m_fSpace *= fZoom;
+                foreach (NodeComponent pNode in _m_listNodes)
+                {
+                    pNode.ZoomOut(fZoom);
+                }
+            }
+            else if (fZoom < 0)
+            {
+                _m_pGridStyle1.m_fSpace /= -fZoom;
+                _m_pGridStyle2.m_fSpace /= -fZoom;
+                foreach (NodeComponent pNode in _m_listNodes)
+                {
+                    pNode.ZoomIn(-fZoom);
+                }
+            }
+        }
+    
         public void MenuMouseRight_AddNode(object args)
         {
             _m_listNodes.Add(new NodeComponent(((InputEvent)args).current.mousePosition));
@@ -483,7 +562,7 @@ namespace NodeEditor.Window
         {
             if (_m_pDataAsset.m_strDataSource != default && _m_pDataAsset.m_strDataSource != "")
             {
-                _m_pDataAsset.Save(this._m_listNodes);
+                _m_pDataAsset.Save(_m_listNodes);
             }
             else
             {
