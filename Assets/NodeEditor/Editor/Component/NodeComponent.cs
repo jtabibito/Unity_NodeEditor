@@ -77,8 +77,7 @@ namespace NodeEditor.Component
         {
             m_bRoot = true;
             _m_strName = "Root";
-            m_pRect = new Rect(new Rect(200, 250, 160, 80));
-        
+            
             for (int i = 0; i < _m_pIn.Count; ++i)
             {
                 Disconnect(_m_pIn[i], this);
