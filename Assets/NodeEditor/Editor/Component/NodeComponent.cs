@@ -22,6 +22,9 @@ namespace NodeEditor.Component
 
         public Rect m_pRect;
 
+        private float _m_fZoom = 1;
+        private Vector2 v2Delta = Vector2.zero;
+
         private bool m_bRoot = false;
         public bool Root
         {
@@ -60,7 +63,7 @@ namespace NodeEditor.Component
         public NodeComponent(bool root)
         {
             m_bRoot = root;
-            m_pRect = new Rect(new Rect(200, 250, 160, 80));
+            m_pRect = new Rect(new Rect(-3, 455, 160, 80));
 
             _m_uuid = this.GetHashCode();
             _m_strName = m_bRoot ? "Root" : "Node";
@@ -77,7 +80,7 @@ namespace NodeEditor.Component
         {
             m_bRoot = true;
             _m_strName = "Root";
-            
+        
             for (int i = 0; i < _m_pIn.Count; ++i)
             {
                 Disconnect(_m_pIn[i], this);
@@ -151,14 +154,31 @@ namespace NodeEditor.Component
                         iGradDirY = -1*iGradDirX;
                     }
 
-                    Handles.DrawBezier(v2Start, v2End, v2Start + iGradDirX*100*Vector2.right, v2End + iGradDirY*100*Vector2.right, Color.cyan, null, 8);
+                    Handles.DrawBezier(v2Start, v2End, v2Start + iGradDirX*100*Vector2.right, v2End + iGradDirY*100*Vector2.right, Color.cyan, null, UIStyle.ms_fBezierLineWidth*_m_fZoom);
                 }
             }
         }
     
         public void Drag(Vector2 v2Delta)
         {
+            this.v2Delta += v2Delta;
             m_pRect.position += v2Delta;
+        }
+        public void Zoom(float fZoom)
+        {
+            m_pRect.position = (m_pRect.position - v2Delta)*fZoom + v2Delta;
+            m_pRect.width *= fZoom;
+            m_pRect.height *= fZoom;
+        }
+        public void ZoomIn(float fZoom)
+        {
+            _m_fZoom += fZoom;
+            Zoom(1/fZoom);
+        }
+        public void ZoomOut(float fZoom)
+        {
+            _m_fZoom -= fZoom;
+            Zoom(fZoom);
         }
         public bool InRange(Vector2 v2Position)
         {
