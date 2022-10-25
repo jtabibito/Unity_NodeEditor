@@ -52,7 +52,7 @@ namespace NodeEditor.Data
         {
             Task<List<NodeComponent>> t = new Task<List<NodeComponent>>(() => {
                 List<NodeComponent> listNodes = new List<NodeComponent>(8);
-                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + "_Graph.ui", FileMode.OpenOrCreate, FileAccess.Read))
+                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + Config.PathConfig.ms_GraphSuffix, FileMode.OpenOrCreate, FileAccess.Read))
                 using (StreamReader sr = new StreamReader(fs))
                 {
                     try
@@ -176,7 +176,7 @@ namespace NodeEditor.Data
         {
             Task<Dictionary<int, DataBase>> t = new Task<Dictionary<int, DataBase>>(() => {
                 Dictionary<int, DataBase> dictData = new Dictionary<int, DataBase>(8);
-                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + "_Data.data", FileMode.OpenOrCreate, FileAccess.Read))
+                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + Config.PathConfig.ms_DataSuffix, FileMode.OpenOrCreate, FileAccess.Read))
                 using (StreamReader sr = new StreamReader(fs))
                 {
                     try
@@ -261,7 +261,7 @@ namespace NodeEditor.Data
             {
                if (dictData.TryGetValue(pNode.ID, out pNode.m_pData))
                {
-                   pNode.m_pScript = UnityEditor.EditorGUIUtility.Load(Config.PathConfig.ms_DataPath + pNode.m_pData.GetType() + ".cs") as UnityEditor.MonoScript;
+                   pNode.m_pScript = UnityEditor.EditorGUIUtility.Load(Config.PathConfig.ms_DataPath + pNode.m_pData.GetType() + Config.PathConfig.ms_CSharpSuffix) as UnityEditor.MonoScript;
                }
             }
             return listNodes;
@@ -269,7 +269,7 @@ namespace NodeEditor.Data
         private Task SaveGraph(List<NodeComponent> data)
         {
             Task t = new Task(() => {
-                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + "_Graph.ui", FileMode.Create, FileAccess.Write))
+                using (FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + Config.PathConfig.ms_GraphSuffix, FileMode.Create, FileAccess.Write))
                 using (StreamWriter sw = new StreamWriter(fs))
                 {
                     StringBuilder sb = new StringBuilder();
@@ -352,7 +352,7 @@ namespace NodeEditor.Data
         private Task SaveData(DataBase[] pSerializer)
         {
             Task t = new Task(() => {
-                using FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + "_Data.data", FileMode.Create, FileAccess.Write);
+                using FileStream fs = new FileStream(Config.PathConfig.ms_ExportPath + m_strDataSource + Config.PathConfig.ms_DataSuffix, FileMode.Create, FileAccess.Write);
                 using StreamWriter sw = new StreamWriter(fs);
                 StringBuilder sb = new StringBuilder();
                 foreach (var pData in pSerializer)
