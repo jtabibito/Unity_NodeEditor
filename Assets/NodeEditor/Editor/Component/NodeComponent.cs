@@ -21,6 +21,8 @@ namespace NodeEditor.Component
         }
 
         public Rect m_pRect;
+        public Rect m_pRectEnter;
+        public Rect m_pRectExit;
 
         private float _m_fZoom = 1;
         private Vector2 v2Delta = Vector2.zero;
@@ -63,7 +65,9 @@ namespace NodeEditor.Component
         public NodeComponent(bool root)
         {
             m_bRoot = root;
-            m_pRect = new Rect(new Rect(-3, 455, 160, 80));
+            m_pRect = new Rect(new Rect(200, 300, 160, 80));
+
+            InitBezierPoint();
 
             _m_uuid = this.GetHashCode();
             _m_strName = m_bRoot ? "Root" : "Node";
@@ -74,6 +78,19 @@ namespace NodeEditor.Component
         public NodeComponent(Vector2 v2Position) : this()
         {
             m_pRect = new Rect(v2Position.x, v2Position.y, 160, 80);
+            InitBezierPoint();
+        }
+
+        public void InitBezierPoint()
+        {
+            float fSize = 24;
+            m_pRectEnter = new Rect(m_pRect.x - fSize, m_pRect.y - 0.5f*fSize + 0.5f*m_pRect.height, fSize, fSize);
+            m_pRectExit = new Rect(m_pRect.x + m_pRect.width, m_pRect.y - 0.5f*fSize + 0.5f*m_pRect.height, fSize, fSize);
+        }
+        public void SetPosition(Vector2 v2Position)
+        {
+            m_pRect.position = v2Position;
+            InitBezierPoint();
         }
 
         public void SetRoot()
@@ -110,6 +127,7 @@ namespace NodeEditor.Component
             }
             else
             {
+                GUI.Box(m_pRectEnter, "", UIStyle.ms_pStyleEnterPoint);
                 if (m_bSelected)
                 {
                     GUI.Box(m_pRect, _m_strName, UIStyle.ms_pStyleSelected);
@@ -119,6 +137,7 @@ namespace NodeEditor.Component
                     GUI.Box(m_pRect, _m_strName, UIStyle.ms_pStyleNormal);
                 }
             }
+            GUI.Box(m_pRectExit, "", UIStyle.ms_pStyleExitPoint);
         }
     
         private void DrawBezier_OutNodes()
@@ -127,33 +146,8 @@ namespace NodeEditor.Component
             {
                 foreach (NodeComponent pNode in _m_pOut)
                 {
-                    Vector2 v2Start = this.m_pRect.center, v2End = pNode.m_pRect.center;
+                    Vector2 v2Start = this.m_pRectExit.center, v2End = pNode.m_pRectEnter.center;
                     int iGradDirX = 1, iGradDirY = -1;
-                    if (pNode.m_pRect.xMax < m_pRect.xMin)
-                    {
-                        v2Start.x -= this.m_pRect.width*0.5f;
-                        v2End.x += pNode.m_pRect.width*0.5f;
-                        iGradDirX = -1;
-                    }
-                    else if (pNode.m_pRect.xMin > m_pRect.xMax)
-                    {
-                        v2Start.x += this.m_pRect.width*0.5f;
-                        v2End.x -= pNode.m_pRect.width*0.5f;
-                        iGradDirX = 1;
-                    }
-                    if (pNode.m_pRect.yMax < m_pRect.yMin)
-                    {
-                        v2Start.y -= this.m_pRect.height*0.5f;
-                        v2End.y += pNode.m_pRect.height*0.5f;
-                        iGradDirY = -1*iGradDirX;
-                    }
-                    else if (pNode.m_pRect.yMin > m_pRect.yMax)
-                    {
-                        v2Start.y += this.m_pRect.height*0.5f;
-                        v2End.y -= pNode.m_pRect.height*0.5f;
-                        iGradDirY = -1*iGradDirX;
-                    }
-
                     Handles.DrawBezier(v2Start, v2End, v2Start + iGradDirX*100*Vector2.right, v2End + iGradDirY*100*Vector2.right, Color.cyan, null, UIStyle.ms_fBezierLineWidth*_m_fZoom);
                 }
             }
@@ -163,12 +157,20 @@ namespace NodeEditor.Component
         {
             this.v2Delta += v2Delta;
             m_pRect.position += v2Delta;
+            m_pRectEnter.position += v2Delta;
+            m_pRectExit.position += v2Delta;
         }
         public void Zoom(float fZoom)
         {
             m_pRect.position = (m_pRect.position - v2Delta)*fZoom + v2Delta;
+            m_pRectEnter.position = (m_pRectEnter.position - v2Delta)*fZoom + v2Delta;
+            m_pRectExit.position = (m_pRectExit.position - v2Delta)*fZoom + v2Delta;
             m_pRect.width *= fZoom;
             m_pRect.height *= fZoom;
+            m_pRectEnter.width *= fZoom;
+            m_pRectEnter.height *= fZoom;
+            m_pRectExit.width *= fZoom;
+            m_pRectExit.height *= fZoom;
         }
         public void ZoomIn(float fZoom)
         {
@@ -284,7 +286,7 @@ namespace NodeEditor.Component
                         break;
                     case "Position":
                         string[] strPosition = strValue.Split(',');
-                        m_pRect.position = new Vector2(float.Parse(strPosition[0]), float.Parse(strPosition[1]));
+                        SetPosition(new Vector2(float.Parse(strPosition[0]), float.Parse(strPosition[1])));
                         break;
                 }
             }
