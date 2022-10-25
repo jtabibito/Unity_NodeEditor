@@ -40,6 +40,17 @@ namespace NodeEditor.Config
             fontStyle = FontStyle.Bold
         };
 
+        public readonly static GUIStyle ms_pStyleEnterPoint = new GUIStyle() {
+            normal = new GUIStyleState() {
+                background = EditorGUIUtility.Load(PathConfig.ms_ResourcePath + "plus.png") as Texture2D,
+            }
+        };
+        public readonly static GUIStyle ms_pStyleExitPoint = new GUIStyle() {
+            normal = new GUIStyleState() {
+                background = EditorGUIUtility.Load(PathConfig.ms_ResourcePath + "minus.png") as Texture2D,
+            }
+        };
+
         public static float ms_fBezierLineWidth = 6f;
     }
 }
