@@ -92,7 +92,15 @@ namespace NodeEditor.Tools
                 case Type t when t == typeof(BoundsInt):
                     pType = SerializedPropertyType.BoundsInt;
                     return true;
+                case Type t when t == typeof(Enum):
+                    pType = SerializedPropertyType.Enum;
+                    return true;
                 default:
+                    if (pInfo.FieldType.IsEnum)
+                    {
+                        pType = SerializedPropertyType.Enum;
+                        return true;
+                    }
                     return false;
             }
         }
@@ -164,6 +172,9 @@ namespace NodeEditor.Tools
                     case SerializedPropertyType.Gradient:
                         break;
                     case SerializedPropertyType.Quaternion:
+                        break;
+                    case SerializedPropertyType.Enum:
+                        pField.SetValue(EditorGUILayout.EnumPopup(pField.m_pFieldInfo.Name, (Enum)pField.GetValue()));
                         break;
                     default:
                         break;
