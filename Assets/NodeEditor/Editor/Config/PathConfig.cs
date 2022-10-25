@@ -12,7 +12,7 @@ namespace NodeEditor.Config
 
         public static string ms_CSharpSuffix = ".cs";
 
-        public static string ms_GraphSuffix = "_Graph.txt";
-        public static string ms_DataSuffix = "_Data.txt";
+        public static string ms_GraphSuffix = "_Graph.ui";
+        public static string ms_DataSuffix = "_Data.data";
     }
 }
