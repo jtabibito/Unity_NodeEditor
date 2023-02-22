@@ -17,7 +17,6 @@ namespace NodeEditor.Component
         public string Name
         {
             get => _m_strName;
-            set => _m_strName = value;
         }
 
         public Rect m_pRect;
@@ -57,8 +56,8 @@ namespace NodeEditor.Component
         public NodeComponent()
         {
             _m_uuid = this.GetHashCode();
-            _m_strName = "Node";
-
+            _m_strName = "节点";
+            
             _m_pIn = new List<NodeComponent>(8);
             _m_pOut = new List<NodeComponent>(8);
         }
@@ -70,15 +69,40 @@ namespace NodeEditor.Component
             InitBezierPoint();
 
             _m_uuid = this.GetHashCode();
-            _m_strName = m_bRoot ? "Root" : "Node";
+            _m_strName = m_bRoot ? "根节点" : "节点";
 
             _m_pIn = new List<NodeComponent>(8);
             _m_pOut = new List<NodeComponent>(8);
         }
-        public NodeComponent(Vector2 v2Position) : this()
+        public NodeComponent(Vector2 v2Position, float fZoom) : this()
         {
             m_pRect = new Rect(v2Position.x, v2Position.y, 160, 80);
             InitBezierPoint();
+            
+            if (fZoom > 0)
+            {
+                _m_fZoom += fZoom;
+                v2Delta /= fZoom;
+                m_pRect.width /= fZoom;
+                m_pRect.height /= fZoom;
+                m_pRectEnter.width /= fZoom;
+                m_pRectEnter.height /= fZoom;
+                m_pRectExit.width /= fZoom;
+                m_pRectExit.height /= fZoom;
+                SetBezierPointPosition();
+            }
+            else if (fZoom < 0)
+            {
+                _m_fZoom += fZoom;
+                v2Delta *= -fZoom;
+                m_pRect.width *= -fZoom;
+                m_pRect.height *= -fZoom;
+                m_pRectEnter.width *= -fZoom;
+                m_pRectEnter.height *= -fZoom;
+                m_pRectExit.width *= -fZoom;
+                m_pRectExit.height *= -fZoom;
+                SetBezierPointPosition();
+            }
         }
 
         public void InitBezierPoint()
@@ -87,16 +111,21 @@ namespace NodeEditor.Component
             m_pRectEnter = new Rect(m_pRect.x - fSize, m_pRect.y - 0.5f*fSize + 0.5f*m_pRect.height, fSize, fSize);
             m_pRectExit = new Rect(m_pRect.x + m_pRect.width, m_pRect.y - 0.5f*fSize + 0.5f*m_pRect.height, fSize, fSize);
         }
+        public void SetBezierPointPosition()
+        {
+            m_pRectEnter = new Rect(m_pRect.x - m_pRectEnter.width, m_pRect.y - 0.5f*m_pRectEnter.height + 0.5f*m_pRect.height, m_pRectEnter.width, m_pRectEnter.height);
+            m_pRectExit = new Rect(m_pRect.x + m_pRect.width, m_pRect.y - 0.5f*m_pRectExit.height + 0.5f*m_pRect.height, m_pRectExit.width, m_pRectExit.height);
+        }
         public void SetPosition(Vector2 v2Position)
         {
             m_pRect.position = v2Position;
-            InitBezierPoint();
+            SetBezierPointPosition();
         }
 
         public void SetRoot()
         {
             m_bRoot = true;
-            _m_strName = "Root";
+            _m_strName = "根节点";
         
             for (int i = 0; i < _m_pIn.Count; ++i)
             {
@@ -112,11 +141,14 @@ namespace NodeEditor.Component
                 m_pData.ID = ID;
             }
         }
-
+        public void SetName(string strName)
+        {
+            _m_strName = strName;
+        }
         public void Draw()
         {
-            DrawNode();
             DrawBezier_OutNodes();
+            DrawNode();
         }
     
         private void DrawNode()
@@ -144,11 +176,16 @@ namespace NodeEditor.Component
         {
             if (_m_pOut.Count > 0)
             {
-                foreach (NodeComponent pNode in _m_pOut)
+                for (int i = 0; i < _m_pOut.Count; ++i)
                 {
-                    Vector2 v2Start = this.m_pRectExit.center, v2End = pNode.m_pRectEnter.center;
+                    Vector2 v2Start = this.m_pRectExit.center, v2End = _m_pOut[i].m_pRectEnter.center;
                     int iGradDirX = 1, iGradDirY = -1;
                     Handles.DrawBezier(v2Start, v2End, v2Start + iGradDirX*100*Vector2.right, v2End + iGradDirY*100*Vector2.right, Color.cyan, null, UIStyle.ms_fBezierLineWidth*_m_fZoom);
+                    
+                    if (m_bRoot)
+                    {
+                        GUI.Box(new Rect(v2Start + 0.5f*(v2End - v2Start) - 0.5f*UIStyle.ms_v2BranchTextSize - UIStyle.ms_pStyleBranchText.fontSize*Vector2.one, UIStyle.ms_v2BranchTextSize), i == 0 ? "主线" : ("支线" + i), UIStyle.ms_pStyleBranchText);
+                    }
                 }
             }
         }
@@ -162,9 +199,10 @@ namespace NodeEditor.Component
         }
         public void Zoom(float fZoom)
         {
-            m_pRect.position = (m_pRect.position - v2Delta)*fZoom + v2Delta;
-            m_pRectEnter.position = (m_pRectEnter.position - v2Delta)*fZoom + v2Delta;
-            m_pRectExit.position = (m_pRectExit.position - v2Delta)*fZoom + v2Delta;
+            v2Delta *= fZoom;
+            m_pRect.position *= fZoom;
+            m_pRectEnter.position *= fZoom;
+            m_pRectExit.position *= fZoom;
             m_pRect.width *= fZoom;
             m_pRect.height *= fZoom;
             m_pRectEnter.width *= fZoom;
@@ -257,8 +295,26 @@ namespace NodeEditor.Component
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("Name:").Append(_m_strName).Append("\n");
-            sb.Append("Size:").Append(m_pRect.width).Append(',').Append(m_pRect.height).Append("\n");
-            sb.Append("Position:").Append(m_pRect.position.x).Append(',').Append(m_pRect.position.y);
+
+            float fZoom = 1-_m_fZoom;
+            float fWidth = m_pRect.width, fHeight = m_pRect.height, fPositionX = m_pRect.position.x, fPositionY = m_pRect.position.y;
+            if (fZoom > 0)
+            {
+                fWidth = m_pRect.width / fZoom;
+                fHeight = m_pRect.height / fZoom;
+                fPositionX = m_pRect.position.x / fZoom;
+                fPositionY = m_pRect.position.y / fZoom;
+            }
+            else if (fZoom < 0)
+            {
+                fWidth = m_pRect.width * -fZoom;
+                fHeight = m_pRect.height * -fZoom;
+                fPositionX = m_pRect.position.x * -fZoom;
+                fPositionY = m_pRect.position.y * -fZoom;
+            }
+
+            sb.Append("Size:").Append(fWidth).Append(',').Append(fHeight).Append("\n");
+            sb.Append("Position:").Append(fPositionX).Append(',').Append(fPositionY);
             return sb;
         }
         public override void Deserializer(object obj)
@@ -287,6 +343,7 @@ namespace NodeEditor.Component
                     case "Position":
                         string[] strPosition = strValue.Split(',');
                         SetPosition(new Vector2(float.Parse(strPosition[0]), float.Parse(strPosition[1])));
+                        InitBezierPoint();
                         break;
                 }
             }
